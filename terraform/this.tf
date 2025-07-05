@@ -20,14 +20,14 @@ resource "github_branch_default" "terraform_github" {
 resource "github_branch_protection" "main" {
   repository_id                   = github_repository.terraform_github.id
   allows_deletions                = false
-  allows_force_pushes             = true
-  enforce_admins                  = true
+  allows_force_pushes             = false
+  enforce_admins                  = false
   lock_branch                     = false
   pattern                         = "main"
   require_conversation_resolution = true
   require_signed_commits          = false
   required_linear_history         = false
-
+  force_push_bypassers            = ["/murray-tait", ]
 
   required_status_checks {
     strict = true
