@@ -17,17 +17,28 @@ resource "github_branch_default" "terraform_github" {
   branch     = github_branch.terraform_github_main.branch
 }
 
-resource "github_branch_protection" "terraform_github_main" {
-  repository_id = github_repository.terraform_github.name
-
+resource "github_branch_protection" "main" {
+  repository_id                   = github_repository.terraform_github.id
   allows_deletions                = false
   allows_force_pushes             = false
-  enforce_admins                  = false
+  enforce_admins                  = true
   lock_branch                     = false
   pattern                         = "main"
   require_conversation_resolution = true
   require_signed_commits          = false
   required_linear_history         = false
+
+
+  required_status_checks {
+    strict = true
+  }
+
+  required_pull_request_reviews {
+    dismiss_stale_reviews           = true
+    require_last_push_approval      = true
+    required_approving_review_count = 1
+
+  }
 }
 
 resource "github_repository_ruleset" "terraform_github_main" {
@@ -38,7 +49,7 @@ resource "github_repository_ruleset" "terraform_github_main" {
 
   conditions {
     ref_name {
-      include = ["~ALL"]
+      include = ["~DEFAULT_BRANCH"]
       exclude = []
     }
   }
@@ -49,6 +60,7 @@ resource "github_repository_ruleset" "terraform_github_main" {
     deletion                = true
     required_linear_history = false
     required_signatures     = true
+
     pull_request {
       required_review_thread_resolution = true
       require_last_push_approval        = true
