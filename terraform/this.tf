@@ -20,7 +20,7 @@ resource "github_branch_default" "terraform_github" {
 resource "github_branch_protection" "main" {
   repository_id                   = github_repository.terraform_github.id
   allows_deletions                = false
-  allows_force_pushes             = false
+  allows_force_pushes             = true
   enforce_admins                  = true
   lock_branch                     = false
   pattern                         = "main"
@@ -52,6 +52,13 @@ resource "github_repository_ruleset" "terraform_github_main" {
       include = ["~DEFAULT_BRANCH"]
       exclude = []
     }
+  }
+
+  bypass_actors {
+    actor_id    = 4
+    actor_type  = "RepositoryRole"
+    bypass_mode = "always"
+
   }
 
   rules {
