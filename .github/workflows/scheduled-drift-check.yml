@@ -3,7 +3,7 @@ name: 'Terraform Configuration Drift Detection'
 on:
   workflow_dispatch: 
   schedule:
-    - cron: '17 7 * * *' # runs nightly at 3:41 am
+    - cron: '17 7 * * *'
 
 #Special permissions required for OIDC authentication
 permissions:
@@ -16,9 +16,6 @@ env:
   ARM_TENANT_ID: "${{ secrets.THIS_GITHUB_TOKEN }}"
 
 jobs:
-  retrieve-aws-credentials:
-    uses: aws-actions/configure-aws-credentials@v4.2.1
-
   terraform-plan:
     name: 'Terraform Plan'
     runs-on: ubuntu-latest
@@ -27,6 +24,9 @@ jobs:
       tfplanExitCode: ${{ steps.tf-plan.outputs.exitcode }}
 
     steps:
+      - name:retrieve-aws-credentials:
+      uses: aws-actions/configure-aws-credentials@v4.2.1
+    
     # Checkout the repository to the GitHub Actions runner
     - name: Checkout
       uses: actions/checkout@v4
