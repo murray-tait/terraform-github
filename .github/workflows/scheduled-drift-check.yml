@@ -24,7 +24,7 @@ jobs:
       tfplanExitCode: ${{ steps.tf-plan.outputs.exitcode }}
 
     steps:
-      - name:retrieve-aws-credentials:
+    - name: retrieve-aws-credentials:
       uses: aws-actions/configure-aws-credentials@v4.2.1
     
     # Checkout the repository to the GitHub Actions runner
