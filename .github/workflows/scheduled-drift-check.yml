@@ -17,7 +17,7 @@ env:
 
 jobs:
   retrieve-aws-credentials:
-    uses: aws-actions/configure-aws-credentials
+    uses: aws-actions/configure-aws-credentials@v4.2.1
 
   terraform-plan:
     name: 'Terraform Plan'
