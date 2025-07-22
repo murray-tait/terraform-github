@@ -13,7 +13,7 @@ permissions:
 
 #These environment variables are used by the terraform azure provider to setup OIDD authenticate. 
 env:
-  ARM_TENANT_ID: "${{ secrets.THIS_GITHUB_TOKEN }}"
+  THIS_GITHUB_TOKEN: "${{ secrets.THIS_GITHUB_TOKEN }}"
 
 jobs:
   terraform-plan:
@@ -24,7 +24,7 @@ jobs:
       tfplanExitCode: ${{ steps.tf-plan.outputs.exitcode }}
 
     steps:
-    - name: retrieve-aws-credentials:
+    - name: retrieve-aws-credentials
       uses: aws-actions/configure-aws-credentials@v4.2.1
     
     # Checkout the repository to the GitHub Actions runner
