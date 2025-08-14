@@ -11,7 +11,6 @@ permissions:
   contents: read
   issues: write
 
-#These environment variables are used by the terraform azure provider to setup OIDD authenticate. 
 env:
   THIS_GITHUB_TOKEN: "${{ secrets.THIS_GITHUB_TOKEN }}"
 
@@ -19,14 +18,22 @@ jobs:
   terraform-plan:
     name: 'Terraform Plan'
     runs-on: ubuntu-latest
+    environment: main
+    env:
+      AWS_ROLE_TO_ASSUME: ${{ vars.AWS_ROLE_TO_ASSUME}}
+      AWS_REGION: ${{ AWS_REGION }}
 
     outputs:
       tfplanExitCode: ${{ steps.tf-plan.outputs.exitcode }}
 
     steps:
-    - name: retrieve-aws-credentials
+    - name: Retrieve AWS Credentials
       uses: aws-actions/configure-aws-credentials@v4.2.1
-    
+      with:
+        role-to-assume: ${{ env.AWS_ROLE_TO_ASSUME }}
+        aws-region: ${{ env.AWS_REGION }}
+
+
     # Checkout the repository to the GitHub Actions runner
     - name: Checkout
       uses: actions/checkout@v4
