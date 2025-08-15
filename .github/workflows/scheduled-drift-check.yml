@@ -28,7 +28,7 @@ jobs:
 
     steps:
       - name: Install utils
-        run: sudo apt-get update && sudo apt-get -y install crudini
+        run: sudo apt-get update && sudo apt-get -y install --no-install-recommends crudini python3-iniparse
 
       - name: Retrieve AWS Credentials
         id: creds
