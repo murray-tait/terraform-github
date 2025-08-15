@@ -69,7 +69,7 @@ jobs:
         run: |
           cd terraform
           export exitcode=0
-          terraform plan -detailed-exitcode -no-color -out=tfplan || export exitcode=$?
+          terraform plan -detailed-exitcode -no-color -out tfplan || export exitcode=$?
 
           echo "exitcode=$exitcode" >> $GITHUB_OUTPUT
 
@@ -84,13 +84,14 @@ jobs:
       - name: Publish Terraform Plan
         uses: actions/upload-artifact@v4
         with:
-          name: tfplan
-          path: tfplan
+          name: terraform/tfplan
+          path: terraform/tfplan
 
       # Create string output of Terraform Plan
       - name: Create String Output
-        id: tf-plan-string
+        id: terraform-plan-string
         run: |
+          cd terraform        
           TERRAFORM_PLAN=$(terraform show -no-color tfplan)
 
           delimiter="$(openssl rand -hex 8)"
@@ -107,16 +108,16 @@ jobs:
       # Publish Terraform Plan as task summary
       - name: Publish Terraform Plan to Task Summary
         env:
-          SUMMARY: ${{ steps.tf-plan-string.outputs.summary }}
+          SUMMARY: ${{ steps.terraform-plan-string.outputs.summary }}
         run: |
           echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
 
       # If changes are detected, create a new issue
       - name: Publish Drift Report
-        if: steps.tf-plan.outputs.exitcode == 2
+        if: steps.terraform-plan.outputs.exitcode == 2
         uses: actions/github-script@v7
         env:
-          SUMMARY: "${{ steps.tf-plan-string.outputs.summary }}"
+          SUMMARY: "${{ steps.terraform-plan-string.outputs.summary }}"
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -161,7 +162,7 @@ jobs:
 
       # If changes aren't detected, close any open drift issues
       - name: Publish Drift Report
-        if: steps.tf-plan.outputs.exitcode == 0
+        if: steps.terraform-plan.outputs.exitcode == 0
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -191,5 +192,5 @@ jobs:
 
       # Mark the workflow as failed if drift detected
       - name: Error on Failure
-        if: steps.tf-plan.outputs.exitcode == 2
+        if: steps.terraform-plan.outputs.exitcode == 2
         run: exit 1
