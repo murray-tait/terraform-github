@@ -12,7 +12,7 @@ permissions:
   issues: write
 
 env:
-  THIS_GITHUB_TOKEN: "${{ secrets.THIS_GITHUB_TOKEN }}"
+  GITHUB_TOKEN: "${{ secrets.THIS_GITHUB_TOKEN }}"
   AWS_PROFILE_TERRAFORM_STATE: "973963482762_TerraformStateAccess"
 
 jobs:
