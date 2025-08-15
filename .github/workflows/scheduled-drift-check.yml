@@ -57,7 +57,9 @@ jobs:
 
       # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
       - name: Terraform Init
-        run: cd terraform && terraform init
+        run: |
+          cat ~/.aws/credentials
+          cd terraform && terraform init
 
       # Generates an execution plan for Terraform
       # An exit code of 0 indicated no changes, 1 a terraform failure, 2 there are pending changes.
