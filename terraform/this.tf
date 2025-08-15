@@ -75,8 +75,3 @@ resource "github_repository_ruleset" "terraform_github_main" {
     }
   }
 }
-
-resource "github_actions_secret" "github_token" {
-  repository  = github_repository.terraform_github.name
-  secret_name = "THIS_GITHUB_TOKEN"
-}
