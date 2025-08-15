@@ -56,6 +56,7 @@ jobs:
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_wrapper: false
+          terraform_version: 1.12.2
 
       # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
       - name: Terraform Init
@@ -68,8 +69,7 @@ jobs:
       - name: Terraform Plan
         id: terraform-plan
         run: |
-          cd terraform
-          terraform plan -detailed-exitcode -no-color -input=false
+          TF_LOG=DEBUG terraform -chdir=terraform plan -detailed-exitcode -no-color -input=false
           # export exitcode=0
           # terraform plan -detailed-exitcode -no-color -out=tfplan || export exitcode=$?
 
