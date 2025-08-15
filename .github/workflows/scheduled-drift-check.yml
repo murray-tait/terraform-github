@@ -28,7 +28,7 @@ jobs:
 
     steps:
       - name: Install utils
-        run: apt-get update && apt-get -y install crudini
+        run: sudo apt-get update && sudo apt-get -y install crudini
 
       - name: Retrieve AWS Credentials
         id: creds
