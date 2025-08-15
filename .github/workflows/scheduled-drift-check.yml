@@ -20,6 +20,7 @@ jobs:
     name: "Terraform Plan"
     runs-on: ubuntu-latest
     environment: main
+    timeout-minutes: 5
     env:
       AWS_ROLE_TO_ASSUME: ${{ vars.AWS_ROLE_TO_ASSUME}}
       AWS_REGION: ${{ vars.AWS_REGION }}
@@ -70,7 +71,7 @@ jobs:
         id: terraform-plan
         run: |
           export exitcode=0
-          terraform plan -chdir=terraform -detailed-exitcode -no-color -out=tfplan || export exitcode=$?
+          terraform plan -chdir=./terraform -detailed-exitcode -no-color -out=tfplan || export exitcode=$?
 
           echo "exitcode=$exitcode" >> $GITHUB_OUTPUT
 
