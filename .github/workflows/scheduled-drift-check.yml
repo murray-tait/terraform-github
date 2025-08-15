@@ -69,32 +69,30 @@ jobs:
       - name: Terraform Plan
         id: terraform-plan
         run: |
-          TF_LOG=DEBUG terraform -chdir=terraform plan -detailed-exitcode -no-color -input=false
-          # export exitcode=0
-          # terraform plan -detailed-exitcode -no-color -out=tfplan || export exitcode=$?
+          export exitcode=0
+          terraform plan -chdir=terraform -detailed-exitcode -no-color -out=tfplan || export exitcode=$?
 
-          # echo "exitcode=$exitcode" >> $GITHUB_OUTPUT
+          echo "exitcode=$exitcode" >> $GITHUB_OUTPUT
 
-          # if [ $exitcode -eq 1 ]; then
-          #   echo Terraform Plan Failed!
-          #   exit 1
-          # else 
-          #   exit 0
-          # fi
+          if [ $exitcode -eq 1 ]; then
+            echo Terraform Plan Failed!
+            exit 1
+          else 
+            exit 0
+          fi
 
       # Save plan to artifacts
       - name: Publish Terraform Plan
         uses: actions/upload-artifact@v4
         with:
-          name: terraform/tfplan
+          name: tfplan
           path: tfplan
 
       # Create string output of Terraform Plan
       - name: Create String Output
         id: terraform-plan-string
         run: |
-          cd terraform        
-          TERRAFORM_PLAN=$(terraform show -no-color tfplan)
+          TERRAFORM_PLAN=$(terraform show -chdir=terraform -no-color tfplan)
 
           delimiter="$(openssl rand -hex 8)"
           echo "summary<<${delimiter}" >> $GITHUB_OUTPUT
