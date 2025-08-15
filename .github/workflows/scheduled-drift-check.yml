@@ -69,6 +69,7 @@ jobs:
         id: terraform-plan
         run: |
           cd terraform
+          terraform plan -detailed-exitcode -no-color
           export exitcode=0
           terraform plan -detailed-exitcode -no-color -out=tfplan || export exitcode=$?
 
