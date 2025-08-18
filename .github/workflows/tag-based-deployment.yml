@@ -151,11 +151,12 @@ jobs:
         run: sudo apt-get update && sudo apt-get -y install --no-install-recommends crudini python3-iniparse
 
       - name: Configure AWS credentials from AWS account
-        uses: aws-actions/configure-aws-credentials@v4
+        id: creds
+        uses: aws-actions/configure-aws-credentials@v4.2.1
         with:
           role-to-assume: ${{ vars.AWS_ROLE_TO_ASSUME }}
           aws-region: ${{ vars.AWS_REGION }}
-          role-session-name: GitHub-OIDC-TERRAFORM
+          output-credentials: true
 
       - name: Create profile
         run: |
