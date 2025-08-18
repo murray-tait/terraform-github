@@ -185,6 +185,8 @@ jobs:
 
       - name: Delete tag
         uses: actions/github-script@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           script: |
             github.rest.git.deleteRef({
@@ -209,11 +211,13 @@ jobs:
 
       - name: Create tag
         uses: actions/github-script@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           script: |
             github.rest.git.createRef({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              ref: 'refs/tags/deployment/${{ needs.validate-input-and-set-environment.outputs.current_env }}'
+              ref: 'refs/tags/deployment/main'
               sha: context.sha
             })
