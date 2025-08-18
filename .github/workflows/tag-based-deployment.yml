@@ -180,9 +180,6 @@ jobs:
 
       - name: Terraform Init
         id: init
-        env:
-          AWS_BUCKET_NAME: ${{ vars.AWS_TF_STATE_BUCKET_NAME }}
-          AWS_BUCKET_KEY_NAME: ${{ vars.AWS_TF_STATE_BUCKET_KEY_NAME }}
         run: terraform -chdir=./terraform init
 
       - name: Delete tag
