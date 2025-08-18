@@ -192,7 +192,7 @@ jobs:
             github.rest.git.deleteRef({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              ref: 'refs/tags/deployment/${{ needs.validate-input-and-set-environment.outputs.current_env }}'
+              ref: 'tags/deployment/${{ needs.validate-input-and-set-environment.outputs.current_env }}'
             })
 
       - name: Download Terraform Plan
