@@ -1,11 +1,12 @@
 name: "Terraform Configuration Drift Detection"
 
+run-name: >
+  ${{ github.event_name == 'workflow_dispatch' && "Manual drift detection" || 'Scheduled drift detection' }}
 on:
   workflow_dispatch:
   schedule:
-    - cron: "17 7 * * *"
+    - cron: "17 5 * * *"
 
-#Special permissions required for OIDC authentication
 permissions:
   id-token: write
   contents: read
@@ -19,6 +20,10 @@ jobs:
   terraform-plan:
     name: "Terraform Plan"
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./
     environment: main
     timeout-minutes: 5
     env:
@@ -49,25 +54,27 @@ jobs:
           crudini --set ~/.aws/credentials ${{ env.AWS_PROFILE_TERRAFORM_STATE }} aws_session_token ${{ steps.creds.outputs.aws-session-token }}
           crudini --set ~/.aws/credentials ${{ env.AWS_PROFILE_TERRAFORM_STATE }} expiration "$(date -d @${{ steps.creds.outputs.aws-expiration }})"
 
-      - name: Checkout
+      - name: Git checkout
         uses: actions/checkout@v4
         with:
           ref: refs/tags/deployment/main
+          fetch-depth: 0
 
-      # Install the latest version of the Terraform CLI
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_wrapper: false
           terraform_version: 1.12.2
 
-      # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
       - name: Terraform Init
-        run: |
-          cat ~/.aws/credentials
-          cd terraform && terraform init
+        id: init
+        run: terraform -chdir=./terraform init
 
-      # Generates an execution plan for Terraform
+      - name: Terraform Validate
+        working-directory: ./event-bridge
+        id: validate
+        run: terraform -chdir=./terraform validate -no-color
+
       # An exit code of 0 indicated no changes, 1 a terraform failure, 2 there are pending changes.
       - name: Terraform Plan
         id: terraform-plan

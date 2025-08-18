@@ -1,0 +1,226 @@
+name: "Tag Based Deployment"
+
+run-name: >
+  ${{ github.event_name == 'workflow_dispatch' && format('Manual Deploy to {0} using {1}', github.event.inputs.environment, github.event.inputs.tag) || 'Deploy to ephemeral env' }}
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Sem ver tag name (e.g., v1.2.3 or v1.2.3-rc.1)"
+        required: true
+      target:
+        description: "Resource to limit plan and import if partial deployment will be done, for example, aws_api_gateway_rest_api.shared_api_gw"
+        required: false
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  GITHUB_TOKEN: "${{ secrets.THIS_GITHUB_TOKEN }}"
+  AWS_PROFILE_TERRAFORM_STATE: "973963482762_TerraformStateAccess"
+
+jobs:
+  validate-input-and-set-environment:
+    runs-on: "ubuntu-latest"
+    outputs:
+      current_env: main
+    steps:
+      - name: Checkout
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Validate Tag exists
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          if ! git rev-parse "refs/tags/${{ github.event.inputs.tag }}" >/dev/null 2>&1; then
+            echo "Tag '${{ github.event.inputs.tag }}' does not exist!"
+            exit 1
+          fi
+
+      - name: Validate Tag format
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          TAG="${{ github.event.inputs.tag }}"
+          if [[ ! $TAG =~ ^v[0-9]{4}\.[0-9]{2}\.[0-9]{2}\.[0-9]{2}\.[0-9]{2}$ ]]; then
+            echo "Tag $TAG is invalid. Please refer to documentation"
+            exit 1
+          fi
+
+      - name: Check if tag is from base branch
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          TAG_COMMIT=$(git rev-list -n 1 "${{ github.event.inputs.tag }}")
+          # Please adjust base branch name based on your repo:
+          BASE_BRANCH=main
+          git fetch origin "$BASE_BRANCH"
+          if ! git merge-base --is-ancestor "$TAG_COMMIT" "origin/$BASE_BRANCH"; then
+            echo "Tag '${{ github.event.inputs.tag }}' is not on the main branch!"
+            exit 1
+          fi
+
+  terraform-plan:
+    name: "Terraform Plan"
+    if: ${{ github.event_name == 'workflow_dispatch' && needs.validate-input-and-set-environment.outputs.current_env != 'dev' }}
+    needs: [validate-input-and-set-environment]
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./
+    environment: main
+    timeout-minutes: 5
+    env:
+      AWS_ROLE_TO_ASSUME: ${{ vars.AWS_ROLE_TO_ASSUME}}
+      AWS_REGION: ${{ vars.AWS_REGION }}
+    steps:
+      - name: Install utils
+        run: sudo apt-get update && sudo apt-get -y install --no-install-recommends crudini python3-iniparse
+
+      - name: Retrieve AWS Credentials
+        id: creds
+        uses: aws-actions/configure-aws-credentials@v4.2.1
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
+          output-credentials: true
+
+      - name: Create profile
+        run: |
+          mkdir ~/.aws
+          touch ~/.aws/credentials
+          crudini --set ~/.aws/credentials ${{ env.AWS_PROFILE_TERRAFORM_STATE }} aws_access_key_id ${{ steps.creds.outputs.aws-access-key-id }}
+          crudini --set ~/.aws/credentials ${{ env.AWS_PROFILE_TERRAFORM_STATE }} aws_secret_access_key ${{ steps.creds.outputs.aws-secret-access-key }}
+          crudini --set ~/.aws/credentials ${{ env.AWS_PROFILE_TERRAFORM_STATE }} aws_session_token ${{ steps.creds.outputs.aws-session-token }}
+          crudini --set ~/.aws/credentials ${{ env.AWS_PROFILE_TERRAFORM_STATE }} expiration "$(date -d @${{ steps.creds.outputs.aws-expiration }})"
+
+      - name: Git checkout
+        uses: actions/checkout@v4
+        with:
+          ref: github.event.inputs.tag
+          fetch-depth: 0
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+          terraform_version: 1.12.2
+
+      - name: Terraform Init
+        id: init
+        run: terraform -chdir=./terraform init
+
+      - name: Terraform Validate
+        working-directory: ./event-bridge
+        id: validate
+        run: terraform -chdir=./terraform validate -no-color
+
+      - name: Terraform Plan
+        id: terraform-plan
+        run: |
+          if [ -n "${{ github.event.inputs.target }}" ]; then
+            terraform -chdir=./terraform plan -target=${{ github.event.inputs.target }} -out=tfplan
+          else
+            terraform -chdir=./terraform plan -out=tfplan
+          fi
+
+      - name: Publish Terraform Plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan
+          path: terraform/tfplan
+
+  deploy:
+    needs: [validate-input-and-set-environment, terraform-plan]
+    environment: main
+    permissions:
+      id-token: write
+      contents: read
+    env:
+      AWS_ROLE_TO_ASSUME: ${{ vars.AWS_ROLE_TO_ASSUME}}
+      AWS_REGION: ${{ vars.AWS_REGION }}
+
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.inputs.tag || github.sha }}
+          fetch-depth: 0
+
+      - name: Download Build Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name:
+
+      - name: Configure AWS credentials from AWS account
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ vars.AWS_REGION }}
+          role-session-name: GitHub-OIDC-TERRAFORM
+
+      - name: Create profile
+        run: |
+          mkdir ~/.aws
+          touch ~/.aws/credentials
+          crudini --set ~/.aws/credentials ${{ env.AWS_PROFILE_TERRAFORM_STATE }} aws_access_key_id ${{ steps.creds.outputs.aws-access-key-id }}
+          crudini --set ~/.aws/credentials ${{ env.AWS_PROFILE_TERRAFORM_STATE }} aws_secret_access_key ${{ steps.creds.outputs.aws-secret-access-key }}
+          crudini --set ~/.aws/credentials ${{ env.AWS_PROFILE_TERRAFORM_STATE }} aws_session_token ${{ steps.creds.outputs.aws-session-token }}
+          crudini --set ~/.aws/credentials ${{ env.AWS_PROFILE_TERRAFORM_STATE }} expiration "$(date -d @${{ steps.creds.outputs.aws-expiration }})"
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_wrapper: false
+          terraform_version: 1.12.2
+
+      - name: Terraform Init
+        working-directory: ./event-bridge
+        id: init
+        env:
+          AWS_BUCKET_NAME: ${{ vars.AWS_TF_STATE_BUCKET_NAME }}
+          AWS_BUCKET_KEY_NAME: ${{ vars.AWS_TF_STATE_BUCKET_KEY_NAME }}
+        run: terraform -chdir=./terraform init
+
+      - name: Delete tag
+        uses: actions/github-script@v5
+        with:
+          script: |
+            github.rest.git.deleteRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: 'refs/tags/deployment/${{ needs.validate-input-and-set-environment.outputs.current_env }}'
+            })
+
+      - name: Download Terraform Plan
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan
+          path: terraform/tfplan
+
+      - name: Terraform Apply
+        working-directory: ./event-bridge
+        run: |
+          if [ -n "${{ github.event.inputs.target }}" ]; then
+            terraform -chdir=./terraform apply -target=${{ github.event.inputs.target }} -auto-approve -input=false tfplan
+          else
+            terraform -chdir=./terraform apply -auto-approve -input=false tfplan
+          fi
+
+      - name: Create tag
+        uses: actions/github-script@v5
+        with:
+          script: |
+            github.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: 'refs/tags/deployment/${{ needs.validate-input-and-set-environment.outputs.current_env }}'
+              sha: context.sha
+            })
