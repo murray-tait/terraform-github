@@ -113,7 +113,6 @@ jobs:
         run: terraform -chdir=./terraform init
 
       - name: Terraform Validate
-        working-directory: ./event-bridge
         id: validate
         run: terraform -chdir=./terraform validate -no-color
 
@@ -182,7 +181,6 @@ jobs:
           terraform_version: 1.12.2
 
       - name: Terraform Init
-        working-directory: ./event-bridge
         id: init
         env:
           AWS_BUCKET_NAME: ${{ vars.AWS_TF_STATE_BUCKET_NAME }}
@@ -206,7 +204,6 @@ jobs:
           path: terraform/tfplan
 
       - name: Terraform Apply
-        working-directory: ./event-bridge
         run: |
           if [ -n "${{ github.event.inputs.target }}" ]; then
             terraform -chdir=./terraform apply -target=${{ github.event.inputs.target }} -auto-approve -input=false tfplan
