@@ -99,7 +99,7 @@ jobs:
       - name: Git checkout
         uses: actions/checkout@v4
         with:
-          ref: github.event.inputs.tag
+          ref: ${{ github.event.inputs.tag || github.sha }}
           fetch-depth: 0
 
       - name: Setup Terraform
