@@ -51,6 +51,8 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: refs/tags/deployment/dev
 
       # Install the latest version of the Terraform CLI
       - name: Setup Terraform
