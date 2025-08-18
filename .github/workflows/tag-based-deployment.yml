@@ -147,12 +147,6 @@ jobs:
         shell: bash
         working-directory: ./
     steps:
-      - name: Git checkout
-        uses: actions/checkout@v3
-        with:
-          ref: ${{ github.event.inputs.tag || github.sha }}
-          fetch-depth: 0
-
       - name: Install utils
         run: sudo apt-get update && sudo apt-get -y install --no-install-recommends crudini python3-iniparse
 
@@ -171,6 +165,12 @@ jobs:
           crudini --set ~/.aws/credentials ${{ env.AWS_PROFILE_TERRAFORM_STATE }} aws_secret_access_key ${{ steps.creds.outputs.aws-secret-access-key }}
           crudini --set ~/.aws/credentials ${{ env.AWS_PROFILE_TERRAFORM_STATE }} aws_session_token ${{ steps.creds.outputs.aws-session-token }}
           crudini --set ~/.aws/credentials ${{ env.AWS_PROFILE_TERRAFORM_STATE }} expiration "$(date -d @${{ steps.creds.outputs.aws-expiration }})"
+
+      - name: Git checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.inputs.tag || github.sha }}
+          fetch-depth: 0
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
