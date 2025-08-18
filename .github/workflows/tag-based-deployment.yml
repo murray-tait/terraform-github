@@ -183,18 +183,6 @@ jobs:
         id: init
         run: terraform -chdir=./terraform init
 
-      - name: Delete tag
-        uses: actions/github-script@v5
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          script: |
-            github.rest.git.deleteRef({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              ref: 'tags/deployment/${{ needs.validate-input-and-set-environment.outputs.current_env }}'
-            })
-
       - name: Download Terraform Plan
         uses: actions/download-artifact@v4
         with:
@@ -209,15 +197,11 @@ jobs:
             terraform -chdir=./terraform apply -auto-approve -input=false tfplan
           fi
 
-      - name: Create tag
-        uses: actions/github-script@v5
+      - name: "Push tag"
+        uses: EndBug/latest-tag@latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          script: |
-            github.rest.git.createRef({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              ref: 'refs/tags/deployment/main'
-              sha: context.sha
-            })
+          # You can change the name of the tag with this input.
+          # Default: 'latest'
+          tag-name: deloyment/main
