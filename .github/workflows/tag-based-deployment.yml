@@ -219,6 +219,6 @@ jobs:
             github.rest.git.createRef({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              ref: 'tags/deployment/main'
-              sha: github.sha
+              ref: 'tags/deployment/main',
+              sha: context.sha
             })
