@@ -190,7 +190,7 @@ jobs:
           path: terraform/tfplan
 
       - name: Terraform Apply
-        working_directory: ./terraform
+        working-directory: ./terraform
         run: |
           ls
           if [ -n "${{ github.event.inputs.target }}" ]; then
