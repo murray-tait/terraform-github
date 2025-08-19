@@ -190,12 +190,13 @@ jobs:
           path: terraform/tfplan
 
       - name: Terraform Apply
+        working_directory: ./terraform
         run: |
-          ls terraform
+          ls
           if [ -n "${{ github.event.inputs.target }}" ]; then
-            terraform -chdir=./terraform apply -target=${{ github.event.inputs.target }} -auto-approve -input=false terraform/tfplan
+            terraform apply -target=${{ github.event.inputs.target }} -auto-approve -input=false tfplan
           else
-            terraform -chdir=./terraform apply -auto-approve -input=false terraform/tfplan
+            terraform apply -auto-approve -input=false tfplan
           fi
 
       - name: "Push tag"
