@@ -203,4 +203,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          ref: refs/tag/deployment/main
+          ref: refs/tags/deployment/main
