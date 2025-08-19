@@ -198,7 +198,7 @@ jobs:
             github.rest.git.deleteRef({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              ref: 'refs/tags/deployment/main'
+              ref: 'tags/deployment/main'
             })
 
       - name: Terraform Apply
@@ -219,6 +219,6 @@ jobs:
             github.rest.git.createRef({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              ref: 'refs/tags/deployment/main'
+              ref: 'tags/deployment/main'
               sha: context.sha
             })
