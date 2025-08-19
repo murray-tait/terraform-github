@@ -191,6 +191,7 @@ jobs:
 
       - name: Terraform Apply
         run: |
+          ls terraform
           if [ -n "${{ github.event.inputs.target }}" ]; then
             terraform -chdir=./terraform apply -target=${{ github.event.inputs.target }} -auto-approve -input=false terraform/tfplan
           else
