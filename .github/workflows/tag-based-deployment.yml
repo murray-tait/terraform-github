@@ -192,9 +192,9 @@ jobs:
       - name: Terraform Apply
         run: |
           if [ -n "${{ github.event.inputs.target }}" ]; then
-            terraform -chdir=./terraform apply -target=${{ github.event.inputs.target }} -auto-approve -input=false tfplan
+            terraform -chdir=./terraform apply -target=${{ github.event.inputs.target }} -auto-approve -input=false terraform/tfplan
           else
-            terraform -chdir=./terraform apply -auto-approve -input=false tfplan
+            terraform -chdir=./terraform apply -auto-approve -input=false terraform/tfplan
           fi
 
       - name: "Push tag"
