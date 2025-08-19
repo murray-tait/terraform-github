@@ -71,7 +71,6 @@ jobs:
         run: terraform -chdir=./terraform init
 
       - name: Terraform Validate
-        working-directory: ./event-bridge
         id: validate
         run: terraform -chdir=./terraform validate -no-color
 
