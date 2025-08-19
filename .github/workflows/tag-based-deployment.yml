@@ -220,5 +220,5 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               ref: 'tags/deployment/main'
-              sha: context.sha
+              sha: github.sha
             })
