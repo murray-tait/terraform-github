@@ -14,7 +14,7 @@ on:
 
 permissions:
   id-token: write
-  contents: read
+  contents: write
 
 env:
   GITHUB_TOKEN: "${{ secrets.THIS_GITHUB_TOKEN }}"
@@ -208,9 +208,8 @@ jobs:
           fi
 
       - name: Create tag
-        uses: actions/github-script@v5
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: actions/github-script@v7
+        github-token: ${{ secrets.GITHUB_TOKEN }}
         with:
           script: |
             github.rest.git.createRef({
