@@ -192,7 +192,6 @@ jobs:
       - name: Terraform Apply
         working-directory: ./terraform
         run: |
-          ls
           if [ -n "${{ github.event.inputs.target }}" ]; then
             terraform apply -target=${{ github.event.inputs.target }} -auto-approve -input=false tfplan
           else
@@ -204,6 +203,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          # You can change the name of the tag with this input.
-          # Default: 'latest'
-          tag-name: deloyment/main
+          ref: refs/tag/deployment/main
