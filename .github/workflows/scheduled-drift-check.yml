@@ -34,9 +34,6 @@ jobs:
       tfplanExitCode: ${{ steps.terraform-plan.outputs.exitcode }}
 
     steps:
-      - name: Install utils
-        run: sudo apt-get update && sudo apt-get -y install --no-install-recommends crudini python3-iniparse
-
       - name: Retrieve AWS Credentials
         id: creds
         uses: aws-actions/configure-aws-credentials@v4.2.1
@@ -49,11 +46,10 @@ jobs:
         run: |
           mkdir ~/.aws
           touch ~/.aws/credentials
-          crudini --set ~/.aws/credentials ${{ env.AWS_PROFILE_TERRAFORM_STATE }} aws_access_key_id ${{ steps.creds.outputs.aws-access-key-id }}
-          crudini --set ~/.aws/credentials ${{ env.AWS_PROFILE_TERRAFORM_STATE }} aws_secret_access_key ${{ steps.creds.outputs.aws-secret-access-key }}
-          crudini --set ~/.aws/credentials ${{ env.AWS_PROFILE_TERRAFORM_STATE }} aws_session_token ${{ steps.creds.outputs.aws-session-token }}
-          crudini --set ~/.aws/credentials ${{ env.AWS_PROFILE_TERRAFORM_STATE }} expiration "$(date -d @${{ steps.creds.outputs.aws-expiration }})"
-
+          echo "[${{ env.AWS_PROFILE_TERRAFORM_STATE }}]" >> ~/.aws/credentials
+          echo "aws_access_key_id = ${{ steps.creds.outputs.aws-access-key-id }}" >> ~/.aws/credentials
+          echo "aws_secret_access_key = ${{ steps.creds.outputs.aws-secret-access-key }}" >> ~/.aws/credentials
+          echo "aws_session_token = ${{ steps.creds.outputs.aws-session-token }}" >> ~/.aws/credentials
       - name: Git checkout
         uses: actions/checkout@v4
         with:
