@@ -70,7 +70,7 @@ jobs:
       run:
         shell: bash
         working-directory: ./
-    environment: main
+    environment: main-plan
     timeout-minutes: 5
     env:
       AWS_ROLE_TO_ASSUME: ${{ vars.AWS_ROLE_TO_ASSUME}}
