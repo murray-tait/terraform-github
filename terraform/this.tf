@@ -75,3 +75,39 @@ resource "github_repository_ruleset" "terraform_github_main" {
     }
   }
 }
+
+resource "github_repository_environment" "build_aws_main" {
+  environment         = "main"
+  repository          = github_repository.terraform_github.name
+  prevent_self_review = true
+  reviewers {
+    users = [data.github_user.owner.id]
+  }
+  deployment_branch_policy {
+    protected_branches     = false
+    custom_branch_policies = true
+  }
+}
+
+data "github_user" "owner" {
+  username = "murray-tait"
+}
+
+resource "github_actions_environment_variable" "terraform_github_main_aws_region" {
+  repository    = github_repository.terraform_github.name
+  environment   = github_repository_environment.build_aws_main.environment
+  variable_name = "AWS_REGION"
+  value         = "eu-west-1"
+}
+
+resource "github_actions_environment_variable" "terraform_github_main_aws_role_to_assume" {
+  repository    = github_repository.terraform_github.name
+  environment   = github_repository_environment.build_aws_main.environment
+  variable_name = "AWS_ROLE_TO_ASSUME"
+  value         = "arn:aws:iam::973963482762:role/Github-Actions-OIDC-murray-tait"
+}
+
+import {
+  to = github_actions_environment_variable.terraform_github_main_aws_role_to_assume
+  id = "terraform-github:main:AWS_ROLE_TO_ASSUME"
+}
