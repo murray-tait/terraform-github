@@ -83,7 +83,7 @@ resource "github_repository_ruleset" "terraform_github_main" {
 resource "github_repository_environment" "build_aws_main" {
   environment         = "main"
   repository          = github_repository.terraform_github.name
-  prevent_self_review = true
+  prevent_self_review = false
   reviewers {
     users = [data.github_user.owner.id]
   }
