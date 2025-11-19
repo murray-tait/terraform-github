@@ -31,7 +31,7 @@ jobs:
       AWS_REGION: ${{ vars.AWS_REGION }}
 
     outputs:
-      tfplanExitCode: ${{ steps.terraform-plan.outputs.exitcode }}
+      drift-detected: ${{ steps.terraform-plan.outputs.drift-detected }}
 
     steps:
       - name: Retrieve AWS Credentials
@@ -81,8 +81,13 @@ jobs:
 
           if [ $exitcode -eq 1 ]; then
             echo Terraform Plan Failed!
+            echo "drift-detected=false" >> $GITHUB_OUTPUT
             exit 1
+          if [ $exitcode -eq 0 ]; then
+            echo "drift-detected=false" >> $GITHUB_OUTPUT
+            exit 0
           else 
+            echo "drift-detected=true" >> $GITHUB_OUTPUT
             exit 0
           fi
 

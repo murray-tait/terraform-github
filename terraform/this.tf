@@ -66,12 +66,16 @@ resource "github_repository_ruleset" "terraform_github_main" {
     update                  = true
     deletion                = true
     required_linear_history = false
-    required_signatures     = true
+    required_signatures     = false
 
     pull_request {
       required_review_thread_resolution = true
       require_last_push_approval        = true
       required_approving_review_count   = 1
+      dismiss_stale_reviews_on_push     = false
+      require_code_owner_review         = false
+
+
     }
   }
 }
