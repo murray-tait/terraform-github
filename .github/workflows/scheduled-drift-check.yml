@@ -83,7 +83,7 @@ jobs:
             echo Terraform Plan Failed!
             echo "drift-detected=false" >> $GITHUB_OUTPUT
             exit 1
-          if [ $exitcode -eq 0 ]; then
+          elif [ $exitcode -eq 0 ]; then
             echo "drift-detected=false" >> $GITHUB_OUTPUT
             exit 0
           else 
