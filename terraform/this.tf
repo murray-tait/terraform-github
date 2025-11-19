@@ -35,47 +35,8 @@ resource "github_branch_protection" "main" {
 
   required_pull_request_reviews {
     dismiss_stale_reviews           = true
-    require_last_push_approval      = true
-    required_approving_review_count = 1
-
-  }
-}
-
-resource "github_repository_ruleset" "terraform_github_main" {
-  name        = "main"
-  repository  = github_repository.terraform_github.name
-  target      = "branch"
-  enforcement = "active"
-
-  conditions {
-    ref_name {
-      include = ["~DEFAULT_BRANCH"]
-      exclude = []
-    }
-  }
-
-  bypass_actors {
-    actor_id    = 4
-    actor_type  = "RepositoryRole"
-    bypass_mode = "always"
-
-  }
-
-  rules {
-    creation                = true
-    update                  = true
-    deletion                = true
-    required_linear_history = false
-    required_signatures     = false
-    non_fast_forward        = true
-
-    pull_request {
-      required_review_thread_resolution = true
-      require_last_push_approval        = true
-      required_approving_review_count   = 1
-      dismiss_stale_reviews_on_push     = false
-      require_code_owner_review         = true
-    }
+    require_last_push_approval      = false
+    required_approving_review_count = 0
   }
 }
 
