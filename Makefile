@@ -15,7 +15,3 @@ apply:
 tag:
 	git tag v${date}
 	git push origin tag v${date}
-
-start-deploy: tag
-	gh workflow run tag-based-deployment.yml -f tag=v${date} -f target=
-

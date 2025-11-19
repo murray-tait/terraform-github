@@ -1,4 +1,4 @@
-name: "Tag Based Deployment"
+name: "Deployment"
 
 run-name: >
   ${{ github.event_name == 'workflow_dispatch' && format('Manual Deploy to {0} using {1}', github.event.inputs.environment, github.event.inputs.tag) || 'Deploy to ephemeral env' }}

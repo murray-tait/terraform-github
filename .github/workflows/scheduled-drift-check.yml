@@ -1,4 +1,4 @@
-name: "Terraform Configuration Drift Detection"
+name: "Drift Detection"
 
 run-name: >
   ${{ github.event_name == 'workflow_dispatch' && 'Manual drift detection' || 'Scheduled drift detection' }}
