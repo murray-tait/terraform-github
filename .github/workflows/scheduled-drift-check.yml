@@ -29,178 +29,29 @@ jobs:
     env:
       AWS_ROLE_TO_ASSUME: ${{ vars.AWS_ROLE_TO_ASSUME}}
       AWS_REGION: ${{ vars.AWS_REGION }}
-
-    outputs:
-      drift-detected: ${{ steps.terraform-plan.outputs.drift-detected }}
-
+      MENTIONS: "@murray-tait"
     steps:
-      - name: Retrieve AWS Credentials
-        id: creds
-        uses: aws-actions/configure-aws-credentials@v4.2.1
+      - name: Configure AWS credentials from AWS account
+        id: terraform-state-creds
+        uses: murray-tait/gha/.github/actions/configure-aws-credentials-file@main
         with:
           role-to-assume: ${{ env.AWS_ROLE_TO_ASSUME }}
+          aws-profile: 973963482762_TerraformStateAccess
           aws-region: ${{ env.AWS_REGION }}
-          output-credentials: true
 
-      - name: Create profile
-        run: |
-          mkdir ~/.aws
-          touch ~/.aws/credentials
-          echo "[${{ env.AWS_PROFILE_TERRAFORM_STATE }}]" >> ~/.aws/credentials
-          echo "aws_access_key_id = ${{ steps.creds.outputs.aws-access-key-id }}" >> ~/.aws/credentials
-          echo "aws_secret_access_key = ${{ steps.creds.outputs.aws-secret-access-key }}" >> ~/.aws/credentials
-          echo "aws_session_token = ${{ steps.creds.outputs.aws-session-token }}" >> ~/.aws/credentials
-      - name: Git checkout
-        uses: actions/checkout@v4
-        with:
-          ref: refs/tags/deployment/main
-          fetch-depth: 0
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_wrapper: false
-          terraform_version: 1.12.2
-
-      - name: Terraform Init
-        id: init
-        run: terraform -chdir=./terraform init
-
-      - name: Terraform Validate
-        id: validate
-        run: terraform -chdir=./terraform validate -no-color
-
-      # An exit code of 0 indicated no changes, 1 a terraform failure, 2 there are pending changes.
-      - name: Terraform Plan
+      - name: Plan for drift detection
         id: terraform-plan
-        run: |
-          export exitcode=0
-          terraform -chdir=./terraform plan -detailed-exitcode -no-color -out=tfplan || export exitcode=$?
-
-          echo "exitcode=$exitcode" >> $GITHUB_OUTPUT
-
-          if [ $exitcode -eq 1 ]; then
-            echo Terraform Plan Failed!
-            echo "drift-detected=false" >> $GITHUB_OUTPUT
-            exit 1
-          elif [ $exitcode -eq 0 ]; then
-            echo "drift-detected=false" >> $GITHUB_OUTPUT
-            exit 0
-          else 
-            echo "drift-detected=true" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-
-      # Save plan to artifacts
-      - name: Publish Terraform Plan
-        uses: actions/upload-artifact@v4
+        uses: murray-tait/gha/.github/actions/plan@main
         with:
-          name: tfplan
-          path: terraform/tfplan
+          checkout-ref: refs/tags/deployment/main
 
-      # Create string output of Terraform Plan
-      - name: Create String Output
-        id: terraform-plan-string
-        run: |
-          TERRAFORM_PLAN=$(terraform -chdir=terraform show -no-color tfplan)
-
-          delimiter="$(openssl rand -hex 8)"
-          echo "summary<<${delimiter}" >> $GITHUB_OUTPUT
-          echo "## Terraform Plan Output" >> $GITHUB_OUTPUT
-          echo "<details><summary>Click to expand</summary>" >> $GITHUB_OUTPUT
-          echo "" >> $GITHUB_OUTPUT
-          echo '```terraform' >> $GITHUB_OUTPUT
-          echo "$TERRAFORM_PLAN" >> $GITHUB_OUTPUT
-          echo '```' >> $GITHUB_OUTPUT
-          echo "</details>" >> $GITHUB_OUTPUT
-          echo "${delimiter}" >> $GITHUB_OUTPUT
-
-      # Publish Terraform Plan as task summary
-      - name: Publish Terraform Plan to Task Summary
-        env:
-          SUMMARY: ${{ steps.terraform-plan-string.outputs.summary }}
-        run: |
-          echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
-
-      # If changes are detected, create a new issue
-      - name: Publish Drift Report
-        if: steps.terraform-plan.outputs.exitcode == 2
-        uses: actions/github-script@v7
-        env:
-          SUMMARY: "${{ steps.terraform-plan-string.outputs.summary }}"
+      - name: Publish drift detection
+        id: publish-drift
+        uses: murray-tait/gha/.github/actions/drift-detection@main
         with:
+          mentions: ${{ env.MENTIONS }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const body = `${process.env.SUMMARY}`;
-            const title = 'Terraform Configuration Drift Detected';
-            const creator = 'github-actions[bot]'
-
-            // Look to see if there is an existing drift issue
-            const issues = await github.rest.issues.listForRepo({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              state: 'open',
-              creator: creator,
-              title: title
-            })
-              
-            if( issues.data.length > 0 ) {
-              // We assume there shouldn't be more than 1 open issue, since we update any issue we find
-              const issue = issues.data[0]
-              
-              if ( issue.body == body ) {
-                console.log('Drift Detected: Found matching issue with duplicate content')
-              } else {
-                console.log('Drift Detected: Found matching issue, updating body')
-                github.rest.issues.update({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  issue_number: issue.number,
-                  body: body
-                })
-              }
-            } else {
-              console.log('Drift Detected: Creating new issue')
-
-              github.rest.issues.create({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                title: title,
-                body: body
-             })
-            }
-
-      # If changes aren't detected, close any open drift issues
-      - name: Publish Drift Report
-        if: steps.terraform-plan.outputs.exitcode == 0
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const title = 'Terraform Configuration Drift Detected';
-            const creator = 'github-actions[bot]'
-
-            // Look to see if there is an existing drift issue
-            const issues = await github.rest.issues.listForRepo({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              state: 'open',
-              creator: creator,
-              title: title
-            })
-              
-            if( issues.data.length > 0 ) {
-              const issue = issues.data[0]
-              
-              github.rest.issues.update({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: issue.number,
-                state: 'closed'
-              })
-            }
-
-      # Mark the workflow as failed if drift detected
-      - name: Error on Failure
-        if: steps.terraform-plan.outputs.exitcode == 2
-        run: exit 1
+          drift-detected: ${{ steps.terraform-plan.outputs.drift-detected }}
+          summary: ${{ steps.terraform-plan.outputs.summary }}
+          ops-info-discord-webhook: ${{ secrets.INFO_DISCORD_WEBHOOK }}
+          ops-alarms-discord-webhook: ${{ secrets.ALARMS_DISCORD_WEBHOOK }}
