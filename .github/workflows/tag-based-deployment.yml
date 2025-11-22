@@ -21,7 +21,8 @@ env:
   AWS_PROFILE_TERRAFORM_STATE: "973963482762_TerraformStateAccess"
 
 jobs:
-  validate-input-and-set-environment:
+  prepare:
+    name: Prepare
     runs-on: "ubuntu-latest"
     outputs:
       current_env: main
@@ -33,7 +34,7 @@ jobs:
           fetch-depth: 0
 
       - name: Validate Tag exists
-        if: github.event_name == 'workflow_dispatch'
+        if: github.event_name == 'workflow_dispatch' && github.event.input.tag
         run: |
           if ! git rev-parse "refs/tags/${{ github.event.inputs.tag }}" >/dev/null 2>&1; then
             echo "Tag '${{ github.event.inputs.tag }}' does not exist!"
@@ -41,7 +42,7 @@ jobs:
           fi
 
       - name: Validate Tag format
-        if: github.event_name == 'workflow_dispatch'
+        if: github.event_name == 'workflow_dispatch' && github.event.input.tag
         run: |
           TAG="${{ github.event.inputs.tag }}"
           if [[ ! $TAG =~ ^v[0-9]{4}\.[0-9]{2}\.[0-9]{2}\.[0-9]{2}\.[0-9]{2}$ ]]; then
@@ -50,7 +51,7 @@ jobs:
           fi
 
       - name: Check if tag is from base branch
-        if: github.event_name == 'workflow_dispatch'
+        if: github.event_name == 'workflow_dispatch' && github.event.input.tag
         run: |
           TAG_COMMIT=$(git rev-list -n 1 "${{ github.event.inputs.tag }}")
           # Please adjust base branch name based on your repo:
@@ -63,8 +64,7 @@ jobs:
 
   terraform-plan:
     name: "Terraform Plan"
-    if: ${{ github.event_name == 'workflow_dispatch' && needs.validate-input-and-set-environment.outputs.current_env != 'dev' }}
-    needs: [validate-input-and-set-environment]
+    needs: [prepare]
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -76,60 +76,28 @@ jobs:
       AWS_ROLE_TO_ASSUME: ${{ vars.AWS_ROLE_TO_ASSUME}}
       AWS_REGION: ${{ vars.AWS_REGION }}
     steps:
-      - name: Retrieve AWS Credentials
-        id: creds
-        uses: aws-actions/configure-aws-credentials@v4.2.1
+      - name: Configure AWS credentials from AWS account
+        id: terraform-state-creds
+        uses: murray-tait/gha/.github/actions/configure-aws-credentials-file@main
         with:
-          role-to-assume: ${{ env.AWS_ROLE_TO_ASSUME }}
-          aws-region: ${{ env.AWS_REGION }}
-          output-credentials: true
+          role-to-assume: ${{ vars.AWS_ROLE_TO_ASSUME }}
+          aws-profile: 973963482762_TerraformStateAccess
+          aws-region: ${{ vars.AWS_REGION }}
 
-      - name: Create profile
-        run: |
-          mkdir ~/.aws
-          touch ~/.aws/credentials
-          echo "[${{ env.AWS_PROFILE_TERRAFORM_STATE }}]" >> ~/.aws/credentials
-          echo "aws_access_key_id = ${{ steps.creds.outputs.aws-access-key-id }}" >> ~/.aws/credentials
-          echo "aws_secret_access_key = ${{ steps.creds.outputs.aws-secret-access-key }}" >> ~/.aws/credentials
-          echo "aws_session_token = ${{ steps.creds.outputs.aws-session-token }}" >> ~/.aws/credentials
-
-      - name: Git checkout
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.inputs.tag || github.sha }}
-          fetch-depth: 0
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_wrapper: false
-          terraform_version: 1.12.2
-
-      - name: Terraform Init
-        id: init
-        run: terraform -chdir=./terraform init
-
-      - name: Terraform Validate
-        id: validate
-        run: terraform -chdir=./terraform validate -no-color
-
-      - name: Terraform Plan
+      - name: Plan for deployment
         id: terraform-plan
-        run: |
-          if [ -n "${{ github.event.inputs.target }}" ]; then
-            terraform -chdir=./terraform plan -target=${{ github.event.inputs.target }} -out=tfplan
-          else
-            terraform -chdir=./terraform plan -out=tfplan
-          fi
-
-      - name: Publish Terraform Plan
-        uses: actions/upload-artifact@v4
+        uses: murray-tait/gha/.github/actions/plan@main
         with:
-          name: tfplan
-          path: terraform/tfplan
+          checkout-ref: ${{ github.event.inputs.tag || github.sha }}
+          target: ${{ github.event.inputs.target }}
+          upload-plan-file: true
+          deployment_environment: ${{ vars.DEPLOYMENT_ENVIRONMENT }}
+          deployment-discord-webhook: ${{ secrets.DEPLOYMENT_GITHUB_WEBHOOK }}
+          protected-deployment: ${{ vars.PROTECTED_DEPLOYMENT }}
 
   deploy:
-    needs: [validate-input-and-set-environment, terraform-plan]
+    name: "Terraform Apply"
+    needs: [prepare, terraform-plan]
     environment: main
     permissions:
       id-token: write
@@ -145,74 +113,19 @@ jobs:
         working-directory: ./
     steps:
       - name: Configure AWS credentials from AWS account
-        id: creds
-        uses: aws-actions/configure-aws-credentials@v4.2.1
+        id: terraform-state-creds
+        uses: murray-tait/gha/.github/actions/configure-aws-credentials-file@main
         with:
           role-to-assume: ${{ vars.AWS_ROLE_TO_ASSUME }}
+          aws-profile: 973963482762_TerraformStateAccess
           aws-region: ${{ vars.AWS_REGION }}
-          output-credentials: true
 
-      - name: Create profile
-        run: |
-          mkdir ~/.aws
-          touch ~/.aws/credentials
-          echo "[${{ env.AWS_PROFILE_TERRAFORM_STATE }}]" >> ~/.aws/credentials
-          echo "aws_access_key_id = ${{ steps.creds.outputs.aws-access-key-id }}" >> ~/.aws/credentials
-          echo "aws_secret_access_key = ${{ steps.creds.outputs.aws-secret-access-key }}" >> ~/.aws/credentials
-          echo "aws_session_token = ${{ steps.creds.outputs.aws-session-token }}" >> ~/.aws/credentials
-
-      - name: Git checkout
-        uses: actions/checkout@v3
+      - name: Deploy
+        id: terraform-deploy
+        uses: murray-tait/gha/.github/actions/deploy@main
         with:
-          ref: ${{ github.event.inputs.tag || github.sha }}
-          fetch-depth: 0
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_wrapper: false
-          terraform_version: 1.12.2
-
-      - name: Terraform Init
-        id: init
-        run: terraform -chdir=./terraform init
-
-      - name: Download Terraform Plan
-        uses: actions/download-artifact@v4
-        with:
-          name: tfplan
-          path: terraform
-
-      - name: Delete tag
-        uses: actions/github-script@v7
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          script: |
-            github.rest.git.deleteRef({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              ref: 'tags/deployment/main'
-            })
-
-      - name: Terraform Apply
-        working-directory: ./terraform
-        run: |
-          if [ -n "${{ github.event.inputs.target }}" ]; then
-            terraform apply -target=${{ github.event.inputs.target }} -auto-approve -input=false tfplan
-          else
-            terraform apply -auto-approve -input=false tfplan
-          fi
-
-      - name: Create tag
-        uses: actions/github-script@v7
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          script: |
-            github.rest.git.createRef({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              ref: 'refs/tags/deployment/main',
-              sha: context.sha
-            })
+          checkout-ref: ${{ github.event.inputs.tag || github.sha }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          target: ${{ github.event.inputs.target }}
+          deployment_environment: ${{ vars.DEPLOYMENT_ENVIRONMENT }}
+          deployment-discord-webhook: ${{ secrets.DEPLOYMENT_GITHUB_WEBHOOK }}
