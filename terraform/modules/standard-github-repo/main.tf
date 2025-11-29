@@ -19,6 +19,7 @@ resource "github_branch_default" "terraform_github" {
 }
 
 resource "github_repository_environment" "build_aws_main" {
+  count               = var.environments ? "1" : "0"
   environment         = "main"
   repository          = github_repository.terraform_github.name
   prevent_self_review = false
@@ -32,20 +33,23 @@ resource "github_repository_environment" "build_aws_main" {
 }
 
 resource "github_actions_environment_variable" "terraform_github_main_aws_region" {
+  count         = var.environments ? "1" : "0"
   repository    = github_repository.terraform_github.name
-  environment   = github_repository_environment.build_aws_main.environment
+  environment   = github_repository_environment.build_aws_main[0].environment
   variable_name = "AWS_REGION"
   value         = var.aws_region
 }
 
 resource "github_actions_environment_variable" "terraform_github_main_aws_role_to_assume" {
+  count         = var.environments ? "1" : "0"
   repository    = github_repository.terraform_github.name
-  environment   = github_repository_environment.build_aws_main.environment
+  environment   = github_repository_environment.build_aws_main[0].environment
   variable_name = "AWS_ROLE_TO_ASSUME"
   value         = "arn:aws:iam::973963482762:role/Github-Actions-OIDC-murray-tait"
 }
 
 resource "github_repository_environment" "build_aws_main_plan" {
+  count               = var.environments ? "1" : "0"
   environment         = "main-plan"
   repository          = github_repository.terraform_github.name
   prevent_self_review = false
@@ -56,15 +60,17 @@ resource "github_repository_environment" "build_aws_main_plan" {
 }
 
 resource "github_actions_environment_variable" "terraform_github_main_plan_aws_region" {
+  count         = var.environments ? "1" : "0"
   repository    = github_repository.terraform_github.name
-  environment   = github_repository_environment.build_aws_main_plan.environment
+  environment   = github_repository_environment.build_aws_main_plan[0].environment
   variable_name = "AWS_REGION"
   value         = var.aws_region
 }
 
 resource "github_actions_environment_variable" "terraform_github_main_plan_aws_role_to_assume" {
+  count         = var.environments ? "1" : "0"
   repository    = github_repository.terraform_github.name
-  environment   = github_repository_environment.build_aws_main_plan.environment
+  environment   = github_repository_environment.build_aws_main_plan[0].environment
   variable_name = "AWS_ROLE_TO_ASSUME"
   value         = "arn:aws:iam::973963482762:role/Github-Actions-OIDC-murray-tait"
 }

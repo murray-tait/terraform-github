@@ -14,3 +14,8 @@ variable "aws_region" {
 variable "aws_role_to_assume" {
   type = string
 }
+
+variable "environments" {
+  type    = string
+  default = true
+}
