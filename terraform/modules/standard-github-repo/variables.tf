@@ -17,7 +17,7 @@ variable "aws_role_to_assume" {
 
 variable "environments" {
   type    = string
-  default = "main"
+  default = true
 }
 
 variable "deployment_discord_webhook" {
