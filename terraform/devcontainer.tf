@@ -3,7 +3,7 @@ module "devcontainer_repository" {
   name                       = ".devcontainer"
   aws_role_to_assume         = "arn:aws:iam::973963482762:role/Github-Actions-OIDC-murray-tait"
   review_user_ids            = [data.github_user.owner.id]
-  ops-info-discord-webhook   = var.ops-info-discord-webhook
-  ops-alarms-discord-webhook = var.ops-alarms-discord-webhook
-  deployment-discord-webhook = var.deployment-discord-webhook
+  ops_info_discord_webhook   = var.ops_info_discord_webhook
+  ops_alarms_discord_webhook = var.ops_alarms_discord_webhook
+  deployment_discord_webhook = var.deployment_discord_webhook
 }
