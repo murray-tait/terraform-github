@@ -17,20 +17,20 @@ variable "aws_role_to_assume" {
 
 variable "environments" {
   type    = string
-  default = true
+  default = "main"
 }
 
 variable "deployment_discord_webhook" {
   type    = string
-  default = true
+  default = ""
 }
 
 variable "ops_info_discord_webhook" {
   type    = string
-  default = true
+  default = ""
 }
 
 variable "ops_alarms_discord_webhook" {
   type    = string
-  default = true
+  default = ""
 }
