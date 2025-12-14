@@ -133,3 +133,21 @@ resource "github_repository_ruleset" "this_main" {
     }
   }
 }
+
+resource "github_actions_secret" "ops_alarms_discord_webhook" {
+  repository      = github_repository.this.name
+  secret_name     = "ALARMS_DISCORD_WEBHOOK"
+  plaintext_value = var.ops_alarms_discord_webhook
+}
+
+resource "github_actions_secret" "deployment_discord_webhook" {
+  repository      = github_repository.this.name
+  secret_name     = "DEPLOYMENT_DISCORD_WEBHOOK"
+  plaintext_value = var.deployment_discord_webhook
+}
+
+resource "github_actions_secret" "ops_info_discord_webhook" {
+  repository      = github_repository.this.name
+  secret_name     = "INFO_DISCORD_WEBHOOK"
+  plaintext_value = var.ops_info_discord_webhook
+}

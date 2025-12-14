@@ -19,3 +19,18 @@ variable "environments" {
   type    = string
   default = true
 }
+
+variable "deployment_discord_webhook" {
+  type    = string
+  default = true
+}
+
+variable "ops_info_discord_webhook" {
+  type    = string
+  default = true
+}
+
+variable "ops_alarms_discord_webhook" {
+  type    = string
+  default = true
+}

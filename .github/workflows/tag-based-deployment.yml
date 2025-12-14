@@ -87,6 +87,10 @@ jobs:
       - name: Plan for deployment
         id: terraform-plan
         uses: murray-tait/gha/.github/actions/plan@main
+        env:
+          TF_ops_info_discord_webhook: ${{ secrets.INFO_DISCORD_WEBHOOK }}
+          TF_ops_alarms_discord_webhook: ${{ secrets.ALARMS_DISCORD_WEBHOOK }}
+          TF_deployment_discord_webhook: ${{ secrets.DEPLOYMENT_DISCORD_WEBHOOK }}
         with:
           checkout-ref: ${{ github.event.inputs.tag || github.sha }}
           target: ${{ github.event.inputs.target }}
