@@ -1,5 +1,5 @@
 
-variable "deployment_discord-webhook" {
+variable "deployment_discord_webhook" {
   type    = string
   default = true
 }
