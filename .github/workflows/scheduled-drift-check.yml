@@ -48,12 +48,10 @@ jobs:
       - name: Publish drift detection
         id: publish-drift
         uses: murray-tait/gha/.github/actions/drift-detection@main
-        env:
-          TF_ops_info_discord_webhook: ${{ secrets.INFO_DISCORD_WEBHOOK }}
-          TF_ops_alarms_discord_webhook: ${{ secrets.ALARMS_DISCORD_WEBHOOK }}
-          TF_deployment_discord_webhook: ${{ secrets.DEPLOYMENT_DISCORD_WEBHOOK }}
         with:
           mentions: ${{ env.MENTIONS }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           drift-detected: ${{ steps.terraform-plan.outputs.drift-detected }}
           summary: ${{ steps.terraform-plan.outputs.summary }}
+          ops-info-discord-webhook: ${{ secrets.INFO_DISCORD_WEBHOOK }}
+          ops-alarms-discord-webhook: ${{ secrets.ALARMS_DISCORD_WEBHOOK }}
