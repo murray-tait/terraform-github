@@ -1,4 +1,6 @@
 date=$$(date '+%Y.%m.%d.%H.%M')
+.EXPORT_ALL_VARIABLES:
+.ONESHELL:
 
 auth-token:
 	export GITHUB_TOKEN=$(cat ~/.config/gh/hosts.yml | yq '.[].oauth_token')

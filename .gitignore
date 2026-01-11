@@ -2,3 +2,4 @@ terraform/.terraform/*
 terraform/terraform.tfstate
 terraform/terraform.tfstate*
 terraform/generated/github/murray-tait/repositories/terraform.tfstate
+.env
