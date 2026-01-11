@@ -30,11 +30,12 @@ locals {
 
 
 resource "github_actions_environment_secret" "plan" {
-  for_each        = nonsensitive(var.plan_secrets)
-  repository      = var.repository_name
-  environment     = github_repository_environment.plan.environment
-  secret_name     = each.key
-  encrypted_value = each.value
+  for_each    = nonsensitive(var.plan_secrets)
+  repository  = var.repository_name
+  environment = github_repository_environment.plan.environment
+  secret_name = each.key
+
+  plaintext_value = each.value
 }
 
 resource "github_repository_environment" "deploy" {
@@ -67,5 +68,5 @@ resource "github_actions_environment_secret" "deploy" {
   repository      = var.repository_name
   environment     = github_repository_environment.deploy.environment
   secret_name     = each.key
-  encrypted_value = each.value
+  plaintext_value = each.value
 }
