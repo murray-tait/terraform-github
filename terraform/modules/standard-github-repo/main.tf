@@ -18,81 +18,6 @@ resource "github_branch_default" "this" {
   branch     = github_branch.this_main.branch
 }
 
-resource "github_repository_environment" "build_aws_main" {
-  count               = var.environments ? "1" : "0"
-  environment         = "main"
-  repository          = github_repository.this.name
-  prevent_self_review = false
-  reviewers {
-    users = var.review_user_ids
-  }
-  deployment_branch_policy {
-    protected_branches     = false
-    custom_branch_policies = true
-  }
-}
-
-resource "github_actions_environment_variable" "this_main_aws_region" {
-  count         = var.environments ? "1" : "0"
-  repository    = github_repository.this.name
-  environment   = github_repository_environment.build_aws_main[0].environment
-  variable_name = "AWS_REGION"
-  value         = var.aws_region
-}
-
-resource "github_actions_environment_variable" "this_main_aws_role_to_assume" {
-  count         = var.environments ? "1" : "0"
-  repository    = github_repository.this.name
-  environment   = github_repository_environment.build_aws_main[0].environment
-  variable_name = "AWS_ROLE_TO_ASSUME"
-  value         = "arn:aws:iam::973963482762:role/Github-Actions-OIDC-murray-tait"
-}
-
-resource "github_actions_environment_variable" "this_main_deployment_environment" {
-  count         = var.environments ? "1" : "0"
-  repository    = github_repository.this.name
-  environment   = github_repository_environment.build_aws_main[0].environment
-  variable_name = "DEPLOYMENT_ENVIRONMENT"
-  value         = "main"
-}
-
-resource "github_repository_environment" "build_aws_main_plan" {
-  count               = var.environments ? "1" : "0"
-  environment         = "main-plan"
-  repository          = github_repository.this.name
-  prevent_self_review = false
-  deployment_branch_policy {
-    protected_branches     = false
-    custom_branch_policies = true
-  }
-}
-
-resource "github_actions_environment_variable" "this_main_plan_aws_region" {
-  count         = var.environments ? "1" : "0"
-  repository    = github_repository.this.name
-  environment   = github_repository_environment.build_aws_main_plan[0].environment
-  variable_name = "AWS_REGION"
-  value         = var.aws_region
-}
-
-resource "github_actions_environment_variable" "this_main_plan_deployment_environment" {
-  count         = var.environments ? "1" : "0"
-  repository    = github_repository.this.name
-  environment   = github_repository_environment.build_aws_main_plan[0].environment
-  variable_name = "DEPLOYMENT_ENVIRONMENT"
-  value         = "main"
-}
-
-
-resource "github_actions_environment_variable" "this_main_plan_aws_role_to_assume" {
-  count         = var.environments ? "1" : "0"
-  repository    = github_repository.this.name
-  environment   = github_repository_environment.build_aws_main_plan[0].environment
-  variable_name = "AWS_ROLE_TO_ASSUME"
-  value         = "arn:aws:iam::973963482762:role/Github-Actions-OIDC-murray-tait"
-}
-
-
 resource "github_branch_protection" "this_main" {
   repository_id                   = github_repository.this.id
   allows_deletions                = false
@@ -152,23 +77,3 @@ resource "github_repository_ruleset" "this_main" {
   }
 }
 
-resource "github_actions_secret" "ops_alarms_discord_webhook" {
-  count           = var.ops_alarms_discord_webhook != "" ? 1 : 0
-  repository      = github_repository.this.name
-  secret_name     = "ALARMS_DISCORD_WEBHOOK"
-  plaintext_value = var.ops_alarms_discord_webhook
-}
-
-resource "github_actions_secret" "deployment_discord_webhook" {
-  count           = var.deployment_discord_webhook != "" ? 1 : 0
-  repository      = github_repository.this.name
-  secret_name     = "DEPLOYMENT_DISCORD_WEBHOOK"
-  plaintext_value = var.deployment_discord_webhook
-}
-
-resource "github_actions_secret" "ops_info_discord_webhook" {
-  count           = var.ops_info_discord_webhook != "" ? 1 : 0
-  repository      = github_repository.this.name
-  secret_name     = "INFO_DISCORD_WEBHOOK"
-  plaintext_value = var.ops_info_discord_webhook
-}
