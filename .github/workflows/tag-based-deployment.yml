@@ -96,7 +96,7 @@ jobs:
           target: ${{ github.event.inputs.target }}
           upload-plan-file: true
           deployment_environment: ${{ vars.DEPLOYMENT_ENVIRONMENT }}
-          deployment-discord-webhook: ${{ secrets.DEPLOYMENT_GITHUB_WEBHOOK }}
+          deployment-discord-webhook: ${{ secrets.DEPLOYMENT_DISCORD_WEBHOOK }}
           protected-deployment: ${{ vars.PROTECTED_DEPLOYMENT }}
 
   deploy:
@@ -132,4 +132,4 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           target: ${{ github.event.inputs.target }}
           deployment_environment: ${{ vars.DEPLOYMENT_ENVIRONMENT }}
-          deployment-discord-webhook: ${{ secrets.DEPLOYMENT_GITHUB_WEBHOOK }}
+          deployment-discord-webhook: ${{ secrets.DEPLOYMENT_DISCORD_WEBHOOK }}
