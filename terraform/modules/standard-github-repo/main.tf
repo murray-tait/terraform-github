@@ -5,7 +5,7 @@ resource "github_repository" "this" {
   has_projects    = true
   has_wiki        = true
   has_issues      = true
-  visibility      = "public"
+  visibility      = var.visibility
 }
 
 resource "github_branch" "this_main" {

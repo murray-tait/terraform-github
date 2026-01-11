@@ -6,31 +6,7 @@ variable "review_user_ids" {
   type = list(string)
 }
 
-variable "aws_region" {
+variable "visibility" {
   type    = string
-  default = "eu-west-1"
-}
-
-variable "aws_role_to_assume" {
-  type = string
-}
-
-variable "environments" {
-  type    = string
-  default = true
-}
-
-variable "deployment_discord_webhook" {
-  type    = string
-  default = ""
-}
-
-variable "ops_info_discord_webhook" {
-  type    = string
-  default = ""
-}
-
-variable "ops_alarms_discord_webhook" {
-  type    = string
-  default = ""
+  default = "public"
 }
