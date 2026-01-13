@@ -15,9 +15,9 @@ module "this_main_environment" {
   }
 
   plan_secrets = {
-    "ops_info_discord_webhook"   = var.ops_info_discord_webhook
-    "ops_alarms_discord_webhook" = var.ops_alarms_discord_webhook
-    "deployment_discord_webhook" = var.deployment_discord_webhook
+    "INFO_DISCORD_WEBHOOK"       = var.info_discord_webhook
+    "ALARMS_DISCORD_WEBHOOK"     = var.alarms_discord_webhook
+    "DEPLOYMENT_DISCORD_WEBHOOK" = var.deployment_discord_webhook
   }
 
   deploy_variables = {
@@ -26,6 +26,6 @@ module "this_main_environment" {
   }
 
   deploy_secrets = {
-    "deployment_discord_webhook" = var.deployment_discord_webhook
+    "DEPLOYMENT_DISCORD_WEBHOOK" = var.deployment_discord_webhook
   }
 }

@@ -16,8 +16,8 @@ module "aws_org_main_environment" {
   }
 
   plan_secrets = {
-    "info_discord_webhook"       = var.ops_info_discord_webhook
-    "alarms_discord_webhook"     = var.ops_alarms_discord_webhook
+    "info_discord_webhook"       = var.info_discord_webhook
+    "alarms_discord_webhook"     = var.alarms_discord_webhook
     "deployment_discord_webhook" = var.deployment_discord_webhook
   }
 
