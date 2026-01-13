@@ -42,6 +42,10 @@ jobs:
       - name: Plan for drift detection
         id: terraform-plan
         uses: murray-tait/gha/.github/actions/plan@main
+        env:
+          TF_VAR_info_discord_webhook: ${{ secrets.INFO_DISCORD_WEBHOOK }}
+          TF_VAR_alarms_discord_webhook: ${{ secrets.ALARMS_DISCORD_WEBHOOK }}
+          TF_VAR_deployment_discord_webhook: ${{ secrets.DEPLOYMENT_DISCORD_WEBHOOK }}
         with:
           checkout-ref: refs/tags/deployment/main
 

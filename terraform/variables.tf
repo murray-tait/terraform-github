@@ -1,15 +1,12 @@
 
 variable "deployment_discord_webhook" {
-  type    = string
-  default = true
+  type = string
 }
 
 variable "info_discord_webhook" {
-  type    = string
-  default = true
+  type = string
 }
 
 variable "alarms_discord_webhook" {
-  type    = string
-  default = true
+  type = string
 }
