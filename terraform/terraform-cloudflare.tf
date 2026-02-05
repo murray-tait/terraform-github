@@ -28,7 +28,7 @@ module "terraform_cloudflare_main_environment" {
 }
 
 import {
-  to = module.terraform_cloudflare_repository.repository_id
+  to = module.terraform_cloudflare_repository.github_repository.this
   id = "terraform_cloudflare"
 }
 
