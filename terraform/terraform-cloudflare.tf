@@ -1,12 +1,14 @@
-module "this_repository" {
+module "terraform_cloudflare_repository" {
   source          = "./modules/standard-github-repo"
-  name            = "terraform-github"
+  name            = "terraform-cloudflare"
   review_user_ids = [data.github_user.owner.id]
+  visibility      = "private"
 }
 
-module "this_main_environment" {
+
+module "terraform_cloudflare_main_environment" {
   source          = "./modules/github-repo-environment-pair"
-  repository_name = "terraform-github"
+  repository_name = "terraform-cloudflare"
   environment     = "main"
 
   shared_variables = {
@@ -23,4 +25,14 @@ module "this_main_environment" {
   deploy_secrets = {
     "DEPLOYMENT_DISCORD_WEBHOOK" = var.deployment_discord_webhook
   }
+}
+
+import {
+  to = module.terraform_cloudflare_repository.repository_id
+  id = "terraform_cloudflare"
+}
+
+import {
+  to = module.terraform_cloudflare_repository.github_branch.this_main
+  id = "terraform_cloudflare"
 }

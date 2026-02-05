@@ -8,11 +8,23 @@ variable "deploy_variables" {
   default = {}
 }
 
+variable "shared_variables" {
+  type    = map(string)
+  default = {}
+}
+
 variable "plan_secrets" {
   type      = map(string)
   default   = {}
   sensitive = true
 }
+
+variable "shared_secrets" {
+  type      = map(string)
+  default   = {}
+  sensitive = true
+}
+
 
 variable "deploy_secrets" {
   type      = map(string)
