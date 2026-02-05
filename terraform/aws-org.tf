@@ -1,13 +1,13 @@
 module "aws_org_repository" {
-  source          = "./modules/standard-github-repo"
-  name            = "aws_org"
-  review_user_ids = [data.github_user.owner.id]
+  source = "./modules/standard-github-repo"
+  name   = "aws_org"
 }
 
 module "aws_org_main_environment" {
   source          = "./modules/github-repo-environment-pair"
   repository_name = "aws_org"
   environment     = "main"
+  review_user_ids = [data.github_user.owner.id]
 
   plan_variables = {
     "AWS_REGION"                         = "eu-west-1"

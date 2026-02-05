@@ -1,8 +1,7 @@
 module "terraform_cloudflare_repository" {
-  source          = "./modules/standard-github-repo"
-  name            = "terraform-cloudflare"
-  review_user_ids = [data.github_user.owner.id]
-  visibility      = "private"
+  source     = "./modules/standard-github-repo"
+  name       = "terraform-cloudflare"
+  visibility = "private"
 }
 
 
@@ -10,6 +9,7 @@ module "terraform_cloudflare_main_environment" {
   source          = "./modules/github-repo-environment-pair"
   repository_name = "terraform-cloudflare"
   environment     = "main"
+  review_user_ids = [data.github_user.owner.id]
 
   shared_variables = {
     "AWS_REGION"         = "eu-west-1"

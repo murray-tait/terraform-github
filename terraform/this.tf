@@ -1,13 +1,13 @@
 module "this_repository" {
-  source          = "./modules/standard-github-repo"
-  name            = "terraform-github"
-  review_user_ids = [data.github_user.owner.id]
+  source = "./modules/standard-github-repo"
+  name   = "terraform-github"
 }
 
 module "this_main_environment" {
   source          = "./modules/github-repo-environment-pair"
   repository_name = "terraform-github"
   environment     = "main"
+  review_user_ids = [data.github_user.owner.id]
 
   shared_variables = {
     "AWS_REGION"         = "eu-west-1"

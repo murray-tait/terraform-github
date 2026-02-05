@@ -6,6 +6,10 @@ resource "github_repository_environment" "deploy" {
     protected_branches     = false
     custom_branch_policies = true
   }
+  reviewers {
+    teams = var.review_teams
+    users = var.review_user_ids
+  }
 }
 
 resource "github_actions_environment_variable" "deploy" {

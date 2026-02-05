@@ -39,3 +39,15 @@ variable "repository_name" {
 variable "environment" {
   type = string
 }
+
+variable "review_user_ids" {
+  type        = list(string)
+  default     = []
+  description = "List of user IDs who are reviewers"
+}
+
+variable "review_teams" {
+  type        = list(string)
+  default     = []
+  description = "List of team IDs who are reviewers"
+}
