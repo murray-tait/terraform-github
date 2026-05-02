@@ -6,6 +6,18 @@ resource "github_repository" "this" {
   has_wiki        = true
   has_issues      = true
   visibility      = var.visibility
+
+  dynamic "pages" {
+    for_each = var.pages ? [1] : []
+    content {
+      build_type = "legacy"
+      source {
+        branch = "main"
+        path   = "/"
+      }
+    }
+
+  }
 }
 
 resource "github_branch" "this_main" {
