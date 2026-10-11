@@ -1,7 +1,6 @@
 resource "github_repository" "advent_of_code" {
   name            = "adventofcode"
   has_discussions = false
-  has_downloads   = true
   has_projects    = true
   has_wiki        = true
   has_issues      = true

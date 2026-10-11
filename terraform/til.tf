@@ -1,7 +1,6 @@
 resource "github_repository" "til" {
   name            = "til"
   has_discussions = false
-  has_downloads   = true
   has_projects    = true
   has_wiki        = true
   has_issues      = true
