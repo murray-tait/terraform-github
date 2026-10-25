@@ -74,11 +74,11 @@ resource "github_repository_ruleset" "this_main" {
   }
 
   rules {
-    creation                = true
-    update                  = true
+    creation                = false
+    required_signatures     = false
+    update                  = false
     deletion                = true
     required_linear_history = false
-    required_signatures     = true
 
     pull_request {
       required_review_thread_resolution = true
